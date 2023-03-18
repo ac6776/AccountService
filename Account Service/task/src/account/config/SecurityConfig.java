@@ -15,17 +15,11 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
     private UserDetailsService userService;
-    private PasswordEncoder passwordEncoder;
     private AuthenticationEntryPoint restAuthenticationEntryPoint;
 
     @Autowired
     public void setUserService(UserDetailsService userService) {
         this.userService = userService;
-    }
-
-    @Autowired
-    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
     }
 
     @Autowired
@@ -44,20 +38,12 @@ public class SecurityConfig {
                 .authorizeRequests()
                     .antMatchers(HttpMethod.POST, "/api/auth/signup").permitAll()
                     .antMatchers(HttpMethod.POST, "/actuator/shutdown").permitAll()
+//                    .antMatchers(HttpMethod.POST, "/api/auth/changepass").permitAll()
                     .anyRequest().authenticated()
                 .and()
+                .userDetailsService(userService)
                 .sessionManagement()
-                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authenticationProvider(authProvider());
+                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         return http.build();
-    }
-
-    @Bean
-    public DaoAuthenticationProvider authProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userService);
-        authProvider.setPasswordEncoder(passwordEncoder);
-        return authProvider;
     }
 }

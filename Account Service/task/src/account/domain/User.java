@@ -5,11 +5,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -33,6 +35,8 @@ public class User {
     @Pattern(regexp = ".+@acme\\.com", message = "email should be @acme.com")
     private String email;
     @NotEmpty(message = "password required")
+    @Length(min = 12, message = "The password length must be at least 12 chars!")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+//    @Pattern(regexp = "")
     private String password;
 }
