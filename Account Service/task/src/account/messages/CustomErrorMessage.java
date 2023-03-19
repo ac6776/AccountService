@@ -1,4 +1,4 @@
-package account.controller;
+package account.messages;
 
 public record CustomErrorMessage(
         String timestamp,

@@ -1,19 +1,15 @@
 package account.service;
 
-import account.config.PasswordAlreadyInUseException;
-import account.config.UserExistException;
 import account.domain.User;
+import account.exceptions.PasswordAlreadyInUseException;
+import account.exceptions.UserExistException;
 import account.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -31,9 +27,9 @@ public class UserService implements UserDetailsService {
     }
 
     public User save(User user) {
-        user.setEmail(user.getEmail());
         if (repository.findByEmailIgnoreCase(user.getEmail()).isPresent())
             throw new UserExistException();
+        user.setEmail(user.getEmail().toLowerCase());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return repository.save(user);
     }
@@ -55,13 +51,11 @@ public class UserService implements UserDetailsService {
                 .build();
     }
 
-    public ResponseEntity<?> updatePassword(String email, String newPassword) {
+    public User updatePassword(String email, String newPassword) {
         User user = findByEmail(email);
         if (passwordEncoder.matches(newPassword, user.getPassword()))
             throw new PasswordAlreadyInUseException();
         user.setPassword(passwordEncoder.encode(newPassword));
-        repository.save(user);
-        var body = Map.of("email", user.getEmail(), "status", "The password has been updated successfully");
-        return ResponseEntity.ok(body);
+        return repository.save(user);
     }
 }
