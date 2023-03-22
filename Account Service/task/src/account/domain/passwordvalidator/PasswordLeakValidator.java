@@ -1,4 +1,4 @@
-package account.security.passwordvalidator;
+package account.domain.passwordvalidator;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;

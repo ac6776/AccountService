@@ -10,12 +10,11 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/empl")
+@RequestMapping
 public class AccController {
 
-    @PostMapping("/payments")
+    @PostMapping
     public ResponseEntity<?> addPayments(List<@Valid Payment> payments)  {
-
         return ResponseEntity.ok().body("");
     }
 }

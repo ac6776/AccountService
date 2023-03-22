@@ -3,7 +3,7 @@ package account.controller;
 import account.domain.User;
 import account.messages.CustomErrorMessage;
 import account.messages.PasswordUpdateSuccessfulMessage;
-import account.security.passwordvalidator.Password;
+import account.domain.passwordvalidator.Password;
 import account.service.UserService;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;

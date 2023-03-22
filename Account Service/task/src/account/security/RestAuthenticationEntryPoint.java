@@ -1,4 +1,4 @@
-package account.config;
+package account.security;
 
 import account.messages.CustomErrorMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,4 +1,4 @@
-package account.security.passwordvalidator;
+package account.domain.passwordvalidator;
 
 import org.hibernate.validator.constraints.CompositionType;
 import org.hibernate.validator.constraints.ConstraintComposition;
