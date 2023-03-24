@@ -2,8 +2,8 @@ package account.service;
 
 import account.domain.Payment;
 import account.repository.PaymentsRepository;
+import account.utils.LocalDateConverter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,11 +33,20 @@ public class PaymentService {
 
     @Transactional
     public List<Payment> findAllPaymentsByEmail(String email) {
-        return paymentsRepository.findAllPaymentsByEmployee(email);
+        return paymentsRepository.findAllPaymentsByEmployeeIgnoreCase(email);
     }
 
     @Transactional
     public Payment save(Payment payment) {
-        return paymentsRepository.save(payment);
+        Payment paymentFromDB = paymentsRepository.findOneByPeriodAndEmployeeIgnoreCase(payment.getPeriod(), payment.getEmployee()).orElse(null);
+        if (paymentFromDB == null) {
+            return paymentsRepository.save(payment);
+        }
+        paymentFromDB.setSalary(payment.getSalary());
+        return paymentsRepository.save(paymentFromDB);
+    }
+
+    public Payment findOneByPeriodAndEmployee(String period, String email) {
+        return paymentsRepository.findOneByPeriodAndEmployeeIgnoreCase(LocalDateConverter.parse(period), email).orElse(null);
     }
 }

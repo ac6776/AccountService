@@ -6,8 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,7 +17,7 @@ import java.util.Date;
 public class PaymentDTO {
     private String name;
     private String lastname;
-    private Date period;
+    private LocalDate period;
     private Long salary;
 
     @JsonGetter("salary")
@@ -26,6 +27,6 @@ public class PaymentDTO {
 
     @JsonGetter("period")
     public String getNamedMonths() {
-        return new SimpleDateFormat("MMMM-yyyy").format(period);
+        return period.format(DateTimeFormatter.ofPattern("MMMM-yyyy", Locale.ENGLISH));
     }
 }
