@@ -1,8 +1,6 @@
 package account.domain;
 
-import account.domain.uservalidator.UserExist;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,8 +8,12 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Positive;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.util.Date;
 
 @Entity
 @NoArgsConstructor
@@ -26,18 +28,19 @@ public class Payment {
     private Long id;
 
     @NotNull
-    @UserExist
     private String employee;
 
     @NotNull
+//    @Pattern(regexp = "(0[1-9]|1[0-2])-20([0-1][0-9]|2[0-3])", message = "date should be [mm-yyyy]")
     @JsonFormat(pattern = "MM-yyyy")
-    private LocalDate period;
-    @Positive
+    private Date period;
+    @Positive(message = "value should be greater than 0")
     @NotNull
     private Long salary;
 
-    @JsonGetter("salary")
-    public String getSalaryAsString() {
-        return "%d dollar(s) %d cent(s)".formatted(salary/100, salary%100);
-    }
+
+//    public void setPeriod(String period) {
+//        LocalDate date = LocalDate.parse(period);
+//        this.period = new Date();
+//    }
 }

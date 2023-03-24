@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.Errors;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +26,7 @@ import javax.validation.Valid;
 import java.time.LocalDateTime;
 
 @RestController
+@Validated
 @RequestMapping("/api/auth")
 public class AuthController {
     private UserService service;
@@ -35,28 +37,12 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@Valid @RequestBody User user, Errors errors, HttpServletRequest request) {
-        if (errors.hasFieldErrors()) {
-            return ResponseEntity.badRequest()
-                    .body(new CustomErrorMessage(LocalDateTime.now().toString(),
-                            HttpStatus.BAD_REQUEST.value(),
-                            HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                            errors.getFieldError().getDefaultMessage(),
-                            request.getServletPath()));
-        }
+    public ResponseEntity<?> signup(@RequestBody @Valid User user) {
         return ResponseEntity.ok(service.save(user));
     }
 
     @PostMapping("/changepass")
-    public ResponseEntity<?> changePass(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody NewPasswordObject newPasswordObject, Errors errors, HttpServletRequest request) {
-        if (errors.hasFieldErrors()) {
-            return ResponseEntity.badRequest()
-                    .body(new CustomErrorMessage(LocalDateTime.now().toString(),
-                            HttpStatus.BAD_REQUEST.value(),
-                            HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                            errors.getFieldError().getDefaultMessage(),
-                            request.getServletPath()));
-        }
+    public ResponseEntity<?> changePass(@AuthenticationPrincipal UserDetails userDetails, @RequestBody @Valid NewPasswordObject newPasswordObject) {
         User user = service.updatePassword(userDetails.getUsername(), newPasswordObject.getNewPassword());
         return ResponseEntity.ok(new PasswordUpdateSuccessfulMessage(user.getEmail(), "The password has been updated successfully"));
     }
