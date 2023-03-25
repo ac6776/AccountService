@@ -5,15 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.validator.constraints.Length;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -37,8 +34,17 @@ public class User {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    @Length(min = 12, message = "The password length must be at least 12 chars!")
-//    @Password
-    @JsonProperty(value = "new_password", access = JsonProperty.Access.WRITE_ONLY)
-    private String newPassword;
+    @ManyToMany(cascade = CascadeType.PERSIST)
+    @JoinTable(name = "users_roles",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private List<Role> roles;
+
+    public void grantAuthority(Role role) {
+        roles.add(role);
+    }
+
+    public void removeAuthority(Role role) {
+        roles.remove(role);
+    }
 }

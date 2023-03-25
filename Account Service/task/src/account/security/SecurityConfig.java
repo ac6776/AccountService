@@ -1,14 +1,14 @@
 package account.security;
 
+import account.config.EndpointsReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -16,6 +16,8 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
     private UserDetailsService userService;
     private AuthenticationEntryPoint restAuthenticationEntryPoint;
+    @Autowired
+    private EndpointsReader endpointsReader;
 
     @Autowired
     public void setUserService(UserDetailsService userService) {
@@ -30,21 +32,27 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .httpBasic()
-                    .authenticationEntryPoint(restAuthenticationEntryPoint)
-                .and()
-                .csrf().disable().headers().frameOptions().disable()
-                .and()
-                .authorizeRequests()
-                    .antMatchers(HttpMethod.POST, "/api/auth/signup").permitAll()
-                    .antMatchers(HttpMethod.POST, "/actuator/shutdown").permitAll()
-                    .antMatchers(HttpMethod.POST, "/api/acct/payments").permitAll()
-                    .antMatchers(HttpMethod.PUT, "/api/acct/payments").permitAll()
-                    .anyRequest().authenticated()
-                .and()
+                .authorizeHttpRequests(auth -> {
+                    auth.antMatchers(HttpMethod.POST, getEndpoint("post.signup")).permitAll();
+                    auth.antMatchers(HttpMethod.POST, getEndpoint("post_shutdown")).permitAll();
+                    auth.antMatchers(HttpMethod.POST, getEndpoint("post_changepass")).authenticated();
+                    auth.antMatchers(HttpMethod.GET, getEndpoint("get_payment")).hasAnyRole("USER", "ACCOUNTANT");
+                    auth.antMatchers(HttpMethod.POST, getEndpoint("post_payments")).hasRole("ACCOUNTANT");
+                    auth.antMatchers(HttpMethod.PUT, getEndpoint("put_payments")).hasRole("ACCOUNTANT");
+                    auth.antMatchers(HttpMethod.GET, getEndpoint("get_user")).hasRole("ADMINISTRATOR");
+                    auth.antMatchers(HttpMethod.DELETE, getEndpoint("delete_user")).hasRole("ADMINISTRATOR");
+                    auth.antMatchers(HttpMethod.PUT, getEndpoint("put_role")).hasRole("ADMINISTRATOR");
+                    auth.anyRequest().authenticated();
+                })
                 .userDetailsService(userService)
-                .sessionManagement()
-                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .csrf(CsrfConfigurer::disable)
+//                .headers(conf -> conf.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+                .sessionManagement(conf -> conf.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .httpBasic(conf -> conf.authenticationEntryPoint(restAuthenticationEntryPoint));
         return http.build();
+    }
+
+    private String getEndpoint(String key) {
+        return endpointsReader.getEndpoint().get(key);
     }
 }
