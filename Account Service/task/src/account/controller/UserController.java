@@ -26,7 +26,7 @@ public class UserController {
     }
 
     @DeleteMapping("${endpoint.delete.user}/{email}")
-    public UserDeleteSuccessMessage deleteUser(@PathVariable @Pattern(regexp = ".+@acme\\.com", message = "email should be @acme.com") String email) {
+    public UserDeleteSuccessMessage deleteUser(@PathVariable String email) {
         userService.deleteUser(email);
         return new UserDeleteSuccessMessage(email, "Deleted successfully!");
     }

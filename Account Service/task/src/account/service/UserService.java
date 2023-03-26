@@ -9,11 +9,14 @@ import account.repository.UserRepository;
 import account.security.RoleType;
 import account.security.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
@@ -54,12 +57,13 @@ public class UserService implements UserDetailsService {
     public User findByEmail(String email) throws UsernameNotFoundException {
         return repository.findByEmailIgnoreCase(email)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException("User with provided email [%s] not found".formatted(email)));
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found!"));
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = findByEmail(username);
+        User user = repository.findByEmailIgnoreCase(username).orElseThrow(() ->
+                new UsernameNotFoundException("User with provided email [%s] not found".formatted(username)));
         return new UserDetailsImpl(user);
     }
 
