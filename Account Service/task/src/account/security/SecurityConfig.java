@@ -41,13 +41,13 @@ public class SecurityConfig {
                     auth.antMatchers(HttpMethod.POST, getEndpoint("post.payments")).hasRole("ACCOUNTANT");
                     auth.antMatchers(HttpMethod.PUT, getEndpoint("put.payments")).hasRole("ACCOUNTANT");
                     auth.antMatchers(HttpMethod.GET, getEndpoint("get.user")).hasRole("ADMINISTRATOR");
-                    auth.antMatchers(HttpMethod.DELETE, getEndpoint("delete.user")).hasRole("ADMINISTRATOR");
+                    auth.antMatchers(HttpMethod.DELETE, getEndpoint("delete.user") + "/**").hasRole("ADMINISTRATOR");
                     auth.antMatchers(HttpMethod.PUT, getEndpoint("put.role")).hasRole("ADMINISTRATOR");
                     auth.anyRequest().authenticated();
                 })
                 .userDetailsService(userService)
                 .csrf(CsrfConfigurer::disable)
-                .headers(conf -> conf.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+//                .headers(conf -> conf.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .sessionManagement(conf -> conf.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(conf -> conf.authenticationEntryPoint(restAuthenticationEntryPoint));
         return http.build();
