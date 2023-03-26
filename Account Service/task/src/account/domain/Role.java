@@ -21,4 +21,9 @@ public class Role {
     public Role(String role) {
         this.role = RoleType.valueOf(role);
     }
+
+    @Override
+    public String toString() {
+        return role.name();
+    }
 }

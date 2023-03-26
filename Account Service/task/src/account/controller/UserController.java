@@ -3,8 +3,11 @@ package account.controller;
 import account.domain.RoleUpdateDTO;
 import account.domain.User;
 import account.messages.UserDeleteSuccessMessage;
+import account.security.UserDetailsImpl;
 import account.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -21,7 +24,9 @@ public class UserController {
     }
 
     @GetMapping("${endpoint.get.user}")
-    public List<User> getUsers() {
+    public List<User> getUsers(@AuthenticationPrincipal UserDetailsImpl user) {
+        System.out.println(user.getAuthorities());
+        System.out.println(user.getPassword());
         return userService.findAll();
     }
 

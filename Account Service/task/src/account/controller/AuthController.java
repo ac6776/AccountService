@@ -4,6 +4,7 @@ import account.domain.User;
 import account.messages.CustomErrorMessage;
 import account.messages.PasswordUpdateSuccessfulMessage;
 import account.domain.passwordvalidator.Password;
+import account.security.UserDetailsImpl;
 import account.service.UserService;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -38,7 +39,9 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody @Valid User user) {
-        return ResponseEntity.ok(service.save(user));
+        User created = service.save(user);
+        UserDetails details = new UserDetailsImpl(created);
+        return ResponseEntity.ok(details);
     }
 
     @PostMapping("/changepass")
