@@ -1,7 +1,7 @@
 package account.domain;
 
 import account.domain.passwordvalidator.Password;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,6 +10,8 @@ import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Entity
@@ -34,17 +36,27 @@ public class User {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    @ManyToMany(cascade = CascadeType.PERSIST)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "users_roles",
         joinColumns = @JoinColumn(name = "user_id"),
         inverseJoinColumns = @JoinColumn(name = "role_id"))
     private List<Role> roles;
 
-    public void grantAuthority(Role role) {
-        roles.add(role);
-    }
+//    public User() {
+//        this.roles = new ArrayList<>();
+//    }
+//
+//    public void grantAuthority(Role role) {
+//        roles.add(role);
+//    }
+//
+//    public void removeAuthority(Role role) {
+//        roles.remove(role);
+//    }
 
-    public void removeAuthority(Role role) {
-        roles.remove(role);
+    @JsonGetter("roles")
+    public String[] getRolesAsArrayOfString() {
+        return roles.stream().map(role -> role.getRole().name()).toArray(String[]::new);
     }
 }

@@ -34,14 +34,14 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> {
                     auth.antMatchers(HttpMethod.POST, getEndpoint("post.signup")).permitAll();
-                    auth.antMatchers(HttpMethod.POST, getEndpoint("post_shutdown")).permitAll();
-                    auth.antMatchers(HttpMethod.POST, getEndpoint("post_changepass")).authenticated();
-                    auth.antMatchers(HttpMethod.GET, getEndpoint("get_payment")).hasAnyRole("USER", "ACCOUNTANT");
-                    auth.antMatchers(HttpMethod.POST, getEndpoint("post_payments")).hasRole("ACCOUNTANT");
-                    auth.antMatchers(HttpMethod.PUT, getEndpoint("put_payments")).hasRole("ACCOUNTANT");
-                    auth.antMatchers(HttpMethod.GET, getEndpoint("get_user")).hasRole("ADMINISTRATOR");
-                    auth.antMatchers(HttpMethod.DELETE, getEndpoint("delete_user")).hasRole("ADMINISTRATOR");
-                    auth.antMatchers(HttpMethod.PUT, getEndpoint("put_role")).hasRole("ADMINISTRATOR");
+                    auth.antMatchers(HttpMethod.POST, getEndpoint("post.shutdown")).permitAll();
+                    auth.antMatchers(HttpMethod.POST, getEndpoint("post.changepass")).authenticated();
+                    auth.antMatchers(HttpMethod.GET, getEndpoint("get.payment")).hasAnyRole("USER", "ACCOUNTANT");
+                    auth.antMatchers(HttpMethod.POST, getEndpoint("post.payments")).hasRole("ACCOUNTANT");
+                    auth.antMatchers(HttpMethod.PUT, getEndpoint("put.payments")).hasRole("ACCOUNTANT");
+                    auth.antMatchers(HttpMethod.GET, getEndpoint("get.user")).hasRole("ADMINISTRATOR");
+                    auth.antMatchers(HttpMethod.DELETE, getEndpoint("delete.user")).hasRole("ADMINISTRATOR");
+                    auth.antMatchers(HttpMethod.PUT, getEndpoint("put.role")).hasRole("ADMINISTRATOR");
                     auth.anyRequest().authenticated();
                 })
                 .userDetailsService(userService)

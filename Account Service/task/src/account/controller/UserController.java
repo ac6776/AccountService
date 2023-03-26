@@ -7,6 +7,8 @@ import account.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
 import java.util.List;
 
 @RestController
@@ -24,13 +26,13 @@ public class UserController {
     }
 
     @DeleteMapping("${endpoint.delete.user}/{email}")
-    public UserDeleteSuccessMessage deleteUser(@PathVariable String email) {
+    public UserDeleteSuccessMessage deleteUser(@PathVariable @Pattern(regexp = ".+@acme\\.com", message = "email should be @acme.com") String email) {
         userService.deleteUser(email);
         return new UserDeleteSuccessMessage(email, "Deleted successfully!");
     }
 
-    @PutMapping("${put.role}")
-    public User updateRoles(@RequestBody RoleUpdateDTO object) {
+    @PutMapping("${endpoint.put.role}")
+    public User updateRoles(@RequestBody @Valid RoleUpdateDTO object) {
         return userService.updateRoles(object.getUser(), object.getOperation(), object.getRole());
     }
 }

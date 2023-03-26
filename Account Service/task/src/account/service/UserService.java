@@ -16,7 +16,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.Pattern;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -45,6 +48,9 @@ public class UserService implements UserDetailsService {
             throw new UserExistException();
         user.setEmail(user.getEmail().toLowerCase());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        Map<String, Role> allRoles = roleService.findAll();
+        Role role = allRoles.get(repository.findAll().isEmpty() ? "ADMINISTRATOR" : "USER");
+        user.setRoles(List.of(role));
         return repository.save(user);
     }
 
@@ -86,10 +92,10 @@ public class UserService implements UserDetailsService {
         User user = findByEmail(email);
         Role roleFromDB = roleService.findRole(role);
         if (operation.equals("GRANT")) {
-            user.grantAuthority(roleFromDB);
+            user.getRoles().add(roleFromDB);
         }
         if (operation.equals("REMOVE")) {
-            user.removeAuthority(roleFromDB);
+            user.getRoles().remove(roleFromDB);
         }
         return repository.save(user);
     }
