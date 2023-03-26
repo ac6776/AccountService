@@ -9,15 +9,12 @@ import account.repository.UserRepository;
 import account.security.RoleType;
 import account.security.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.validation.constraints.Pattern;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -75,7 +72,7 @@ public class UserService implements UserDetailsService {
     }
 
     public List<User> findAll() {
-        return repository.findAll(Sort.by(Sort.Direction.ASC));
+        return repository.findAll();
     }
 
     public void deleteUser(String email) {

@@ -8,30 +8,26 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 
 public class UserDetailsImpl implements UserDetails {
-    private final String username;
-    private final String password;
-    private final Collection<? extends GrantedAuthority> rolesAndAuthorities;
+    private final User user;
 
     public UserDetailsImpl(User user) {
-        this.username = user.getEmail();
-        this.password = user.getPassword();
-        this.rolesAndAuthorities = user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role.toString())).toList();
+        this.user = user;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return rolesAndAuthorities;
+        return  user.getRoles().stream()
+                .map(role -> new SimpleGrantedAuthority(role.toString())).toList();
     }
 
     @Override
     public String getPassword() {
-        return password;
+        return user.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return username;
+        return user.getEmail();
     }
 
     @Override
