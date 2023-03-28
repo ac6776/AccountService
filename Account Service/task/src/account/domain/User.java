@@ -2,6 +2,7 @@ package account.domain;
 
 import account.domain.passwordvalidator.Password;
 import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,6 +12,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import java.util.Arrays;
 import java.util.List;
 
 @Entity
@@ -43,6 +45,20 @@ public class User {
     private List<Role> roles;
     @JsonGetter("roles")
     public String[] getRolesAsArrayOfString() {
-        return roles.stream().map(role -> role.getRole().name()).toArray(String[]::new);
+        return roles.stream().map(Role::toString).toArray(String[]::new);
     }
+
+    @JsonIgnore
+    public boolean isAdmin() {
+        return roles.get(0).toString().equals("ROLE_ADMINISTRATOR");
+    }
+
+    public void grandAuthority(Role role) {
+        roles.add(role);
+    }
+
+    public void removeAuthority(Role role) {
+        roles.remove(role);
+    }
+
 }

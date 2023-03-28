@@ -18,4 +18,9 @@ public class RoleUpdateDTO {
     @NotNull
     @Pattern(regexp = "GRANT|REMOVE")
     private String operation;
+
+    public void setRole(String role) {
+        String prefix = "ROLE_";
+        this.role = role.startsWith(prefix) ? role : prefix + role;
+    }
 }

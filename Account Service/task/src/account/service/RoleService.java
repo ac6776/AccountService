@@ -34,7 +34,7 @@ public class RoleService {
         List<Role> roles = rolesRepository.findAll();
         Map<String, Role> mappedRoles = new HashMap<>();
         for (Role role: roles) {
-            mappedRoles.put(role.getRole().name().substring("ROLE_".length()), role);
+            mappedRoles.put(role.toString().substring("ROLE_".length()), role);
         }
         return mappedRoles;
     }

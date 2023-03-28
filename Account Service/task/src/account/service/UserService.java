@@ -4,12 +4,11 @@ import account.domain.Role;
 import account.domain.User;
 import account.exceptions.AdminDeletionException;
 import account.exceptions.PasswordAlreadyInUseException;
+import account.exceptions.RolesAssignmentException;
 import account.exceptions.UserExistException;
 import account.repository.UserRepository;
-import account.security.RoleType;
 import account.security.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -82,7 +81,7 @@ public class UserService implements UserDetailsService {
     public void deleteUser(String email) {
         User user = findByEmail(email);
         for (Role role: user.getRoles()) {
-            if (role.getRole() == RoleType.ROLE_ADMINISTRATOR) {
+            if (role.toString().equals("ROLE_ADMINISTRATOR")) {
                 throw new AdminDeletionException();
             }
         }
@@ -93,11 +92,24 @@ public class UserService implements UserDetailsService {
         User user = findByEmail(email);
         Role roleFromDB = roleService.findRole(role);
         if (operation.equals("GRANT")) {
-            user.getRoles().add(roleFromDB);
+            if ((user.isAdmin() && !role.equals("ROLE_ADMINISTRATOR")) ||
+                (!user.isAdmin() && role.equals("ROLE_ADMINISTRATOR"))) {
+                throw new RolesAssignmentException("The user cannot combine administrative and business roles!");
+            }
+            user.grandAuthority(roleFromDB);
         }
         if (operation.equals("REMOVE")) {
-            user.getRoles().remove(roleFromDB);
+            if (role.equals("ROLE_ADMINISTRATOR")) {
+                throw new RolesAssignmentException("Can't remove ADMINISTRATOR role!");
+            }
+            if (!user.getRoles().contains(roleFromDB)) {
+                throw new RolesAssignmentException("The user does not have a role!");
+            }
+            if (user.getRoles().size() == 1) {
+                throw new RolesAssignmentException("The user must have at least one role!");
+            }
+            user.removeAuthority(roleFromDB);
         }
-        return repository.save(user);
+        return user;
     }
 }
