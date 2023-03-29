@@ -1,9 +1,9 @@
 package account.domain;
 
-import account.security.RoleType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.UniqueElements;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -18,14 +18,14 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @NotNull
-    @Enumerated
-    private RoleType role;
+    @Column(unique = true)
+    private String role;
     public Role(String role) {
-        this.role = RoleType.valueOf(role);
+        this.role = role;
     }
 
     @Override
     public String toString() {
-        return role.name();
+        return role;
     }
 }

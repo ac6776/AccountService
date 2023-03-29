@@ -18,13 +18,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class UserService implements UserDetailsService {
+
     private UserRepository repository;
     private PasswordEncoder passwordEncoder;
-
     private RoleService roleService;
 
     @Autowired
@@ -47,9 +46,9 @@ public class UserService implements UserDetailsService {
             throw new UserExistException();
         user.setEmail(user.getEmail().toLowerCase());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        Map<String, Role> allRoles = roleService.findAll();
-        Role role = allRoles.get(repository.findAll().isEmpty() ? "ADMINISTRATOR" : "USER");
-        user.setRoles(List.of(role));
+        Role adminRole = roleService.findRole("ROLE_ADMINISTRATOR");
+        Role userRole = roleService.findRole("ROLE_USER");
+        user.grandAuthority(repository.findAll().isEmpty() ? adminRole : userRole);
         return repository.save(user);
     }
 
@@ -88,9 +87,11 @@ public class UserService implements UserDetailsService {
         repository.delete(user);
     }
 
+
     public User updateRoles(String email, String operation, String role) {
         User user = findByEmail(email);
         Role roleFromDB = roleService.findRole(role);
+
         if (operation.equals("GRANT")) {
             if ((user.isAdmin() && !role.equals("ROLE_ADMINISTRATOR")) ||
                 (!user.isAdmin() && role.equals("ROLE_ADMINISTRATOR"))) {
@@ -110,6 +111,6 @@ public class UserService implements UserDetailsService {
             }
             user.removeAuthority(roleFromDB);
         }
-        return user;
+        return repository.save(user);
     }
 }

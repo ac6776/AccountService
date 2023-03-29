@@ -7,19 +7,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import java.util.Arrays;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @NoArgsConstructor
 @Getter
 @Setter
 @Table(name = "employees")
+@ToString
 public class User {
     @Id
     @GeneratedValue
@@ -42,7 +44,7 @@ public class User {
     @JoinTable(name = "users_roles",
         joinColumns = @JoinColumn(name = "user_id"),
         inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private List<Role> roles;
+    private Set<Role> roles;
     @JsonGetter("roles")
     public String[] getRolesAsArrayOfString() {
         return roles.stream().map(Role::toString).toArray(String[]::new);
@@ -50,10 +52,12 @@ public class User {
 
     @JsonIgnore
     public boolean isAdmin() {
-        return roles.get(0).toString().equals("ROLE_ADMINISTRATOR");
+        return roles.stream().map(Role::toString).anyMatch(s -> s.equals("ROLE_ADMINISTRATOR"));
     }
 
     public void grandAuthority(Role role) {
+        if (roles == null)
+            roles = new LinkedHashSet<>();
         roles.add(role);
     }
 

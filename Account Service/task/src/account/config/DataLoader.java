@@ -22,7 +22,7 @@ public class DataLoader {
             roleService.save(new Role("ROLE_USER"));
             roleService.save(new Role("ROLE_ACCOUNTANT"));
         } catch (Exception e) {
-
+            e.printStackTrace();
         }
     }
 }

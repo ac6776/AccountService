@@ -23,4 +23,9 @@ public class RoleUpdateDTO {
         String prefix = "ROLE_";
         this.role = role.startsWith(prefix) ? role : prefix + role;
     }
+
+    @Override
+    public String toString() {
+        return "User: %s, role: %s, operation: %s".formatted(user, role, operation) ;
+    }
 }

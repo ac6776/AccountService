@@ -34,6 +34,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> {
+                    auth.antMatchers("/test").permitAll();
                     auth.antMatchers(HttpMethod.POST, getEndpoint("post.signup")).permitAll();
                     auth.antMatchers(HttpMethod.POST, getEndpoint("post.shutdown")).permitAll();
                     auth.antMatchers(HttpMethod.POST, getEndpoint("post.changepass")).authenticated();
