@@ -21,6 +21,7 @@ public class DataLoader {
             roleService.save(new Role("ROLE_ADMINISTRATOR"));
             roleService.save(new Role("ROLE_USER"));
             roleService.save(new Role("ROLE_ACCOUNTANT"));
+            roleService.save(new Role("ROLE_AUDITOR"));
         } catch (Exception e) {
             e.printStackTrace();
         }
