@@ -1,6 +1,7 @@
 package account.security;
 
 import account.config.EndpointsReader;
+import account.exceptions.AccessDeniedExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +13,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 
 @Configuration
 public class SecurityConfig {
@@ -41,17 +43,23 @@ public class SecurityConfig {
                     auth.antMatchers(HttpMethod.GET, getEndpoint("get.payment")).hasAnyRole("USER", "ACCOUNTANT");
                     auth.antMatchers(HttpMethod.POST, getEndpoint("post.payments")).hasRole("ACCOUNTANT");
                     auth.antMatchers(HttpMethod.PUT, getEndpoint("put.payments")).hasRole("ACCOUNTANT");
-                    auth.antMatchers(HttpMethod.GET, getEndpoint("get.user")).hasRole("ADMINISTRATOR");
-                    auth.antMatchers(HttpMethod.DELETE, getEndpoint("delete.user") + "/**").hasRole("ADMINISTRATOR");
+                    auth.antMatchers(getEndpoint("get.user") + "/**").hasRole("ADMINISTRATOR");
                     auth.antMatchers(HttpMethod.PUT, getEndpoint("put.role")).hasRole("ADMINISTRATOR");
+                    auth.antMatchers(HttpMethod.DELETE, getEndpoint("delete.user") + "/**").hasRole("ADMINISTRATOR");
                     auth.anyRequest().authenticated();
                 })
                 .userDetailsService(userService)
                 .csrf(CsrfConfigurer::disable)
-//                .headers(conf -> conf.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+                .headers(conf -> conf.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .sessionManagement(conf -> conf.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(conf -> conf.accessDeniedHandler(accessDeniedHandler()))
                 .httpBasic(conf -> conf.authenticationEntryPoint(restAuthenticationEntryPoint));
         return http.build();
+    }
+
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return new AccessDeniedExceptionHandler();
     }
 
     private String getEndpoint(String key) {

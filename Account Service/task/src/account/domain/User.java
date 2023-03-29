@@ -13,7 +13,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -47,7 +47,7 @@ public class User {
     private Set<Role> roles;
     @JsonGetter("roles")
     public String[] getRolesAsArrayOfString() {
-        return roles.stream().map(Role::toString).toArray(String[]::new);
+        return roles.stream().map(Role::toString).sorted().toArray(String[]::new);
     }
 
     @JsonIgnore
@@ -57,7 +57,7 @@ public class User {
 
     public void grandAuthority(Role role) {
         if (roles == null)
-            roles = new LinkedHashSet<>();
+            roles = new HashSet<>();
         roles.add(role);
     }
 
