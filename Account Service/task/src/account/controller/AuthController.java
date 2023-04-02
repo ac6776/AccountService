@@ -33,7 +33,7 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody @Valid User user) {
-        User created = service.save(user);
+        User created = service.createUser(user);
         return ResponseEntity.ok(created);
     }
 

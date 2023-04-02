@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class UserController {
@@ -37,5 +38,10 @@ public class UserController {
     @PutMapping("${endpoint.put.role}")
     public User updateRoles(@RequestBody @Valid RoleUpdateDTO object) {
         return userService.updateRoles(object.getUser(), object.getOperation(), object.getRole());
+    }
+
+    @PutMapping("${endpoint.put.access}")
+    public Map<String, String> putLockStatus() {
+        return Map.of();
     }
 }

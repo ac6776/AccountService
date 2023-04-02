@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
@@ -26,15 +27,19 @@ public class User {
     @Id
     @GeneratedValue
     private Long id;
+
     @NotNull
     @NotEmpty(message = "first name required")
     private String name;
+
     @NotNull
     @NotEmpty(message = "lastname required")
     private String lastname;
+
     @NotNull
     @Pattern(regexp = ".+@acme\\.com", message = "email should be @acme.com")
     private String email;
+
     @Password
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
@@ -49,6 +54,14 @@ public class User {
     public String[] getRolesAsArrayOfString() {
         return roles.stream().map(Role::toString).sorted().toArray(String[]::new);
     }
+
+    @Column(name = "is_locked")
+    @JsonIgnore
+    private boolean isLocked = false;
+
+    @Column(name = "login_attempts")
+    @JsonIgnore
+    private int loginAttempts = 0;
 
     @JsonIgnore
     public boolean isAdmin() {

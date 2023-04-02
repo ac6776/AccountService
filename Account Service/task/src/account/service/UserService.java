@@ -8,7 +8,12 @@ import account.exceptions.RolesAssignmentException;
 import account.exceptions.UserExistException;
 import account.repository.UserRepository;
 import account.security.UserDetailsImpl;
+import account.service.events.*;
+import account.service.events.RoleRemovedEvent;
+import account.service.events.DeleteUserEvent;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -27,6 +32,9 @@ public class UserService implements UserDetailsService {
     private RoleService roleService;
 
     @Autowired
+    private ApplicationEventPublisher publisher;
+
+    @Autowired
     public void setRoleService(RoleService roleService) {
         this.roleService = roleService;
     }
@@ -41,7 +49,7 @@ public class UserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User save(User user) {
+    public User createUser(User user) {
         if (repository.findByEmailIgnoreCase(user.getEmail()).isPresent())
             throw new UserExistException();
         user.setEmail(user.getEmail().toLowerCase());
@@ -49,7 +57,9 @@ public class UserService implements UserDetailsService {
         Role adminRole = roleService.findRole("ROLE_ADMINISTRATOR");
         Role userRole = roleService.findRole("ROLE_USER");
         user.grandAuthority(repository.findAll().isEmpty() ? adminRole : userRole);
-        return repository.save(user);
+        User createdUser = repository.save(user);
+        publisher.publishEvent(new UserCreatedEvent(user));
+        return createdUser;
     }
 
     public User findByEmail(String email) throws UsernameNotFoundException {
@@ -70,7 +80,9 @@ public class UserService implements UserDetailsService {
         if (passwordEncoder.matches(newPassword, user.getPassword()))
             throw new PasswordAlreadyInUseException();
         user.setPassword(passwordEncoder.encode(newPassword));
-        return repository.save(user);
+        User updatedUser = repository.save(user);
+        publisher.publishEvent(new ChangePasswordEvent(user));
+        return updatedUser;
     }
 
     public List<User> findAll() {
@@ -85,32 +97,60 @@ public class UserService implements UserDetailsService {
             }
         }
         repository.delete(user);
+        publisher.publishEvent(new DeleteUserEvent(user)); //
     }
 
 
     public User updateRoles(String email, String operation, String role) {
         User user = findByEmail(email);
-        Role roleFromDB = roleService.findRole(role);
-
+        ApplicationEvent event;
         if (operation.equals("GRANT")) {
-            if ((user.isAdmin() && !role.equals("ROLE_ADMINISTRATOR")) ||
+            grantRole(user, role);
+            event = new RoleGrantedEvent(user);
+        } else {
+            removeRole(user, role);
+            event = new RoleRemovedEvent(user);
+        }
+        User updatedUser = repository.save(user);
+        publisher.publishEvent(event);
+        return updatedUser;
+    }
+
+    private void removeRole(User user, String role) {
+        Role roleFromDB = roleService.findRole(role);
+        if (role.equals("ROLE_ADMINISTRATOR")) {
+            throw new RolesAssignmentException("Can't remove ADMINISTRATOR role!");
+        }
+        if (!user.getRoles().contains(roleFromDB)) {
+            throw new RolesAssignmentException("The user does not have a role!");
+        }
+        if (user.getRoles().size() == 1) {
+            throw new RolesAssignmentException("The user must have at least one role!");
+        }
+        user.removeAuthority(roleFromDB);
+    }
+
+    private void grantRole(User user, String role) {
+        Role roleFromDB = roleService.findRole(role);
+        if ((user.isAdmin() && !role.equals("ROLE_ADMINISTRATOR")) ||
                 (!user.isAdmin() && role.equals("ROLE_ADMINISTRATOR"))) {
-                throw new RolesAssignmentException("The user cannot combine administrative and business roles!");
-            }
-            user.grandAuthority(roleFromDB);
+            throw new RolesAssignmentException("The user cannot combine administrative and business roles!");
         }
-        if (operation.equals("REMOVE")) {
-            if (role.equals("ROLE_ADMINISTRATOR")) {
-                throw new RolesAssignmentException("Can't remove ADMINISTRATOR role!");
-            }
-            if (!user.getRoles().contains(roleFromDB)) {
-                throw new RolesAssignmentException("The user does not have a role!");
-            }
-            if (user.getRoles().size() == 1) {
-                throw new RolesAssignmentException("The user must have at least one role!");
-            }
-            user.removeAuthority(roleFromDB);
+        user.grandAuthority(roleFromDB);
+    }
+
+    public User updateLockUser(String email, String operation) {
+        User user = findByEmail(email);
+        ApplicationEvent event;
+        if (operation.equals("LOCK")) {
+            user.setLocked(true);
+            event = new UserLockedEvent(user);
+        } else {
+            user.setLocked(false);
+            event = new UserUnlockedEvent(user);
         }
-        return repository.save(user);
+        User updatedUser = repository.save(user);
+        publisher.publishEvent(event);
+        return updatedUser;
     }
 }

@@ -1,14 +1,14 @@
 package account.service;
 
 public enum Event {
-    CREATE_USER,
-    CHANGE_PASSWORD,
-    ACCESS_DENIED,
-    LOGIN_FAILED,
-    GRANT_ROLE,
-    REMOVE_ROLE,
-    LOCK_USER,
-    UNLOCK_USER,
-    DELETE_USER,
-    BRUTE_FORCE
+    CREATE_USER, //user service
+    CHANGE_PASSWORD, //user service
+    ACCESS_DENIED, //Access denied Handler
+    LOGIN_FAILED, //entrypoint
+    GRANT_ROLE, //user service
+    REMOVE_ROLE, //user service
+    LOCK_USER, //user service
+    UNLOCK_USER, //user service
+    DELETE_USER, //user service
+    BRUTE_FORCE //entrypoint
 }
