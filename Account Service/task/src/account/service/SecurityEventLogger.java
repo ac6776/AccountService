@@ -3,6 +3,7 @@ package account.service;
 import account.domain.SecurityEvent;
 import account.domain.User;
 import account.repository.SecurityEventRepository;
+import account.security.UserDetailsImpl;
 import account.service.events.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -17,10 +18,16 @@ import java.util.List;
 public class SecurityEventLogger {
 
     private SecurityEventRepository securityEventRepository;
+    private UserService userService;
 
     @Autowired
     public void setSecurityEventRepository(SecurityEventRepository securityEventRepository) {
         this.securityEventRepository = securityEventRepository;
+    }
+
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
     }
 
     public List<SecurityEvent> findAll() {
@@ -31,19 +38,22 @@ public class SecurityEventLogger {
         securityEventRepository.save(event);
     }
 
-    @EventListener
-    public void onUserCreated(UserCreatedEvent event) {
-        System.out.println("user Created: " + ((User) event.getSource()).getEmail());
-    }
 
     @EventListener
     public void onAuthenticationSuccess(AuthenticationSuccessEvent event) {
-        System.out.println(event.getClass());
+        var user = ((UserDetailsImpl) event.getAuthentication().getPrincipal()).getUser();
+        userService.resetLoginAttempts(user);
     }
 
     @EventListener
     public void onAuthenticationFailure(AbstractAuthenticationFailureEvent failureEvent) {
-        System.out.println("failure");
+        failureEvent.getException().getMessage();
+        SecurityEvent securityEvent = new SecurityEvent();
+        securityEvent.setAction(Event.LOGIN_FAILED);
+        securityEvent.setSubject("Anonymous");
+        securityEvent.setObject(((User) failureEvent.getSource()).getEmail());
+        securityEvent.setPath("/api/auth/signup");
+        securityEventRepository.save(securityEvent);
     }
 
     @EventListener
@@ -52,37 +62,47 @@ public class SecurityEventLogger {
     }
 
     @EventListener
-    public void onChangePassword(ChangePasswordEvent event) {
-
+    public void onUserCreated(ApplicationSecurityEvent event) {
+        SecurityEvent securityEvent = new SecurityEvent();
+        securityEvent.setAction(event.getType());
+        securityEvent.setSubject("Anonymous"); //user details
+        securityEvent.setObject(((User) event.getSource()).getEmail()); //user
+        securityEvent.setPath("/api/auth/signup");
+        securityEventRepository.save(securityEvent);
     }
 
-    @EventListener
-    public void onRoleGranted(RoleGrantedEvent event) {
-
-    }
-
-    @EventListener
-    public void onRoleRemoved(RoleRemovedEvent event) {
-
-    }
-
-    @EventListener
-    public void onDeleteUser(DeleteUserEvent event) {
-
-    }
-
-    @EventListener
-    public void onUserLocked(UserLockedEvent event) {
-
-    }
-
-    @EventListener
-    public void onUserUnlocked(UserUnlockedEvent event) {
-
-    }
-
-    @EventListener
-    public void onBruteForce(BruteForceEvent event) {
-
-    }
+//    @EventListener
+//    public void onChangePassword(ChangePasswordEvent event) {
+//
+//    }
+//
+//    @EventListener
+//    public void onRoleGranted(RoleGrantedEvent event) {
+//
+//    }
+//
+//    @EventListener
+//    public void onRoleRemoved(RoleRemovedEvent event) {
+//
+//    }
+//
+//    @EventListener
+//    public void onDeleteUser(DeleteUserEvent event) {
+//
+//    }
+//
+//    @EventListener
+//    public void onUserLocked(UserLockedEvent event) {
+//
+//    }
+//
+//    @EventListener
+//    public void onUserUnlocked(UserUnlockedEvent event) {
+//
+//    }
+//
+//    @EventListener
+//    public void onBruteForce(BruteForceEvent event) {
+//
+//    }
 }

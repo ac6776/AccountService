@@ -153,4 +153,9 @@ public class UserService implements UserDetailsService {
         publisher.publishEvent(event);
         return updatedUser;
     }
+
+    public void resetLoginAttempts(User user) {
+        user.setLoginAttempts(0);
+        repository.save(user);
+    }
 }
