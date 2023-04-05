@@ -1,6 +1,7 @@
 package account.service;
 
 import account.domain.Role;
+import account.domain.SecurityEvent;
 import account.domain.User;
 import account.exceptions.AdminDeletionException;
 import account.exceptions.PasswordAlreadyInUseException;
@@ -8,9 +9,6 @@ import account.exceptions.RolesAssignmentException;
 import account.exceptions.UserExistException;
 import account.repository.UserRepository;
 import account.security.UserDetailsImpl;
-import account.service.events.*;
-import account.service.events.RoleRemovedEvent;
-import account.service.events.DeleteUserEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -26,6 +24,8 @@ import java.util.List;
 
 @Service
 public class UserService implements UserDetailsService {
+
+    private static final int MAX_LOGIN_ATTEMPTS = 5;
 
     private UserRepository repository;
     private PasswordEncoder passwordEncoder;
@@ -49,7 +49,7 @@ public class UserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User createUser(User user) {
+    public User createUser(User user, String path) {
         if (repository.findByEmailIgnoreCase(user.getEmail()).isPresent())
             throw new UserExistException();
         user.setEmail(user.getEmail().toLowerCase());
@@ -58,7 +58,8 @@ public class UserService implements UserDetailsService {
         Role userRole = roleService.findRole("ROLE_USER");
         user.grandAuthority(repository.findAll().isEmpty() ? adminRole : userRole);
         User createdUser = repository.save(user);
-        publisher.publishEvent(new UserCreatedEvent(user));
+        SecurityEvent event = new SecurityEvent(EventType.CREATE_USER,"Anonymous", createdUser.getEmail(), path);
+        publisher.publishEvent(new ApplicationSecurityEvent(createdUser, event));
         return createdUser;
     }
 
@@ -75,13 +76,14 @@ public class UserService implements UserDetailsService {
         return new UserDetailsImpl(user);
     }
 
-    public User updatePassword(String email, String newPassword) {
+    public User updatePassword(String email, String newPassword, String path) {
         User user = findByEmail(email);
         if (passwordEncoder.matches(newPassword, user.getPassword()))
             throw new PasswordAlreadyInUseException();
         user.setPassword(passwordEncoder.encode(newPassword));
         User updatedUser = repository.save(user);
-        publisher.publishEvent(new ChangePasswordEvent(user));
+        SecurityEvent event = new SecurityEvent(EventType.CHANGE_PASSWORD, user.getEmail(), user.getEmail(), path);
+        publisher.publishEvent(new ApplicationSecurityEvent(user, event));
         return updatedUser;
     }
 
@@ -89,30 +91,32 @@ public class UserService implements UserDetailsService {
         return repository.findAll();
     }
 
-    public void deleteUser(String email) {
-        User user = findByEmail(email);
+    public void deleteUser(String adminEmail, String userEmail, String path) {
+        User user = findByEmail(userEmail);
         for (Role role: user.getRoles()) {
             if (role.toString().equals("ROLE_ADMINISTRATOR")) {
                 throw new AdminDeletionException();
             }
         }
+        SecurityEvent event = new SecurityEvent(EventType.DELETE_USER, adminEmail, user.getEmail(), path);
         repository.delete(user);
-        publisher.publishEvent(new DeleteUserEvent(user)); //
+        publisher.publishEvent(new ApplicationSecurityEvent(user, event)); //
     }
 
 
-    public User updateRoles(String email, String operation, String role) {
-        User user = findByEmail(email);
-        ApplicationEvent event;
+    public User updateRoles(String adminEmail, String userEmail, String operation, String role, String path) {
+        User user = findByEmail(userEmail);
+        SecurityEvent event;
         if (operation.equals("GRANT")) {
             grantRole(user, role);
-            event = new RoleGrantedEvent(user);
+            event = new SecurityEvent(EventType.GRANT_ROLE, adminEmail, user.getEmail(), path);
         } else {
             removeRole(user, role);
-            event = new RoleRemovedEvent(user);
+            event = new SecurityEvent(EventType.REMOVE_ROLE, adminEmail, user.getEmail(), path);
         }
         User updatedUser = repository.save(user);
-        publisher.publishEvent(event);
+
+        publisher.publishEvent(new ApplicationSecurityEvent(user, event));
         return updatedUser;
     }
 
@@ -139,23 +143,33 @@ public class UserService implements UserDetailsService {
         user.grandAuthority(roleFromDB);
     }
 
-    public User updateLockUser(String email, String operation) {
-        User user = findByEmail(email);
-        ApplicationEvent event;
+    public User updateLockUser(String adminEmail, String userEmail, String operation, String path) {
+        User user = findByEmail(userEmail);
+        SecurityEvent event;
         if (operation.equals("LOCK")) {
             user.setLocked(true);
-            event = new UserLockedEvent(user);
+            event = new SecurityEvent(EventType.LOCK_USER, adminEmail, user.getEmail(), path);
         } else {
             user.setLocked(false);
-            event = new UserUnlockedEvent(user);
+            event = new SecurityEvent(EventType.UNLOCK_USER, adminEmail, user.getEmail(), path);
         }
         User updatedUser = repository.save(user);
-        publisher.publishEvent(event);
+
+        publisher.publishEvent(new ApplicationSecurityEvent(user, event));
         return updatedUser;
     }
 
     public void resetLoginAttempts(User user) {
         user.setLoginAttempts(0);
+        repository.save(user);
+    }
+
+    public void incrementLoginAttempts(User user, String path) {
+        int number = user.incrementLoginAttempts();
+        if (number >= MAX_LOGIN_ATTEMPTS) {
+            SecurityEvent event = new SecurityEvent(EventType.BRUTE_FORCE, user.getEmail(), path, path);
+            publisher.publishEvent(new ApplicationSecurityEvent(user, event));
+        }
         repository.save(user);
     }
 }

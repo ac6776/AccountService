@@ -1,6 +1,6 @@
 package account.service;
 
-public enum Event {
+public enum EventType {
     CREATE_USER, //user service
     CHANGE_PASSWORD, //user service
     ACCESS_DENIED, //Access denied Handler

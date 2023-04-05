@@ -1,15 +1,11 @@
 package account.service;
 
 import account.domain.SecurityEvent;
-import account.domain.User;
 import account.repository.SecurityEventRepository;
 import account.security.UserDetailsImpl;
-import account.service.events.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
-import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
-import org.springframework.security.authorization.event.AuthorizationDeniedEvent;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -45,31 +41,31 @@ public class SecurityEventLogger {
         userService.resetLoginAttempts(user);
     }
 
-    @EventListener
-    public void onAuthenticationFailure(AbstractAuthenticationFailureEvent failureEvent) {
-        failureEvent.getException().getMessage();
-        SecurityEvent securityEvent = new SecurityEvent();
-        securityEvent.setAction(Event.LOGIN_FAILED);
-        securityEvent.setSubject("Anonymous");
-        securityEvent.setObject(((User) failureEvent.getSource()).getEmail());
-        securityEvent.setPath("/api/auth/signup");
-        securityEventRepository.save(securityEvent);
-    }
+//    @EventListener
+//    public void onAuthenticationFailure(AbstractAuthenticationFailureEvent failureEvent) {
+////        failureEvent.getException().getMessage();
+////        SecurityEvent securityEvent = new SecurityEvent();
+////        securityEvent.setAction(Event.LOGIN_FAILED);
+////        securityEvent.setSubject("Anonymous");
+////        securityEvent.setObject(((User) failureEvent.getSource()).getEmail());
+////        securityEvent.setPath("/api/auth/signup");
+////        securityEventRepository.save(securityEvent);
+//    }
 
     @EventListener
-    public void onAccessDenied(AuthorizationDeniedEvent event) {
-        System.out.println("Authorization denied");
+    public void onSecurityEvent(ApplicationSecurityEvent event) {
+        securityEventRepository.save(event.getSecurityEvent());
     }
 
-    @EventListener
-    public void onUserCreated(ApplicationSecurityEvent event) {
-        SecurityEvent securityEvent = new SecurityEvent();
-        securityEvent.setAction(event.getType());
-        securityEvent.setSubject("Anonymous"); //user details
-        securityEvent.setObject(((User) event.getSource()).getEmail()); //user
-        securityEvent.setPath("/api/auth/signup");
-        securityEventRepository.save(securityEvent);
-    }
+//    @EventListener
+//    public void onUserCreated(ApplicationSecurityEvent event) {
+////        SecurityEvent securityEvent = new SecurityEvent();
+////        securityEvent.setAction(event.getType());
+////        securityEvent.setSubject("Anonymous"); //user details
+////        securityEvent.setObject(((User) event.getSource()).getEmail()); //user
+////        securityEvent.setPath("/api/auth/signup");
+////        securityEventRepository.save(securityEvent);
+//    }
 
 //    @EventListener
 //    public void onChangePassword(ChangePasswordEvent event) {

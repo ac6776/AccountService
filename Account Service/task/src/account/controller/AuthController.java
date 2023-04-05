@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.WebRequest;
 
 import javax.validation.Valid;
 
@@ -32,14 +33,14 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody @Valid User user) {
-        User created = service.createUser(user);
+    public ResponseEntity<?> signup(@RequestBody @Valid User user, WebRequest request) {
+        User created = service.createUser(user, request.getDescription(false));
         return ResponseEntity.ok(created);
     }
 
     @PostMapping("/changepass")
-    public ResponseEntity<?> changePass(@AuthenticationPrincipal UserDetails userDetails, @RequestBody @Valid NewPasswordObject newPasswordObject) {
-        User user = service.updatePassword(userDetails.getUsername(), newPasswordObject.getNewPassword());
+    public ResponseEntity<?> changePass(@AuthenticationPrincipal UserDetails userDetails, @RequestBody @Valid NewPasswordObject object, WebRequest request) {
+        User user = service.updatePassword(userDetails.getUsername(), object.getNewPassword(), request.getDescription(false));
         return ResponseEntity.ok(new PasswordUpdateSuccessfulMessage(user.getEmail(), "The password has been updated successfully"));
     }
 
