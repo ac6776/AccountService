@@ -42,6 +42,9 @@ public class SecurityEvent {
         if (action == EventType.GRANT_ROLE) {
             return "Grant role %s to %s".formatted(additionalData.substring("ROLE_".length()), object);
         }
+        if (action == EventType.REMOVE_ROLE) {
+            return "Remove role %s from %s".formatted(additionalData.substring("ROLE_".length()), object);
+        }
         return object;
     }
 }

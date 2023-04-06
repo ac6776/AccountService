@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.authorization.event.AuthorizationDeniedEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -48,9 +49,14 @@ public class SecurityEventLogger {
     public void onAuthenticationFailure(AbstractAuthenticationFailureEvent failureEvent) {
 //        User user = ((UserDetailsImpl)failureEvent.getAuthentication().getPrincipal()).getUser();
         String path = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest().getServletPath();
-        String email = failureEvent.getAuthentication().getName();
+        String email = failureEvent.getAuthentication().getPrincipal().toString();
         userService.incrementLoginAttempts(email, path);
         securityEventRepository.save(new SecurityEvent(EventType.LOGIN_FAILED, email, path, path));
+    }
+
+    @EventListener
+    public void onAccessDenied(AuthorizationDeniedEvent failure) {
+        System.out.println("Event denied");
     }
 
     @EventListener

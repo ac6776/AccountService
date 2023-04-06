@@ -64,8 +64,9 @@ public class UserService implements UserDetailsService {
 
     public User findByEmail(String email) throws UsernameNotFoundException {
         return repository.findByEmailIgnoreCase(email)
-                .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found!"));
+                .orElse(null);
+//                .orElseThrow(() ->
+//                        new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found!"));
     }
 
     @Override
@@ -144,6 +145,9 @@ public class UserService implements UserDetailsService {
 
     public User updateLockUser(String adminEmail, String userEmail, String operation, String path) {
         User user = findByEmail(userEmail);
+        if (user == null) {
+            return null;
+        }
         SecurityEvent event;
         if (operation.equals("LOCK")) {
             user.setLocked(true);
@@ -165,6 +169,9 @@ public class UserService implements UserDetailsService {
 
     public User incrementLoginAttempts(String email, String path) {
         User user = findByEmail(email);
+        if (user == null) {
+            return user;
+        }
         int number = user.incrementLoginAttempts();
         if (number >= MAX_LOGIN_ATTEMPTS) {
             SecurityEvent event = new SecurityEvent(EventType.BRUTE_FORCE, user.getEmail(), path, path);
