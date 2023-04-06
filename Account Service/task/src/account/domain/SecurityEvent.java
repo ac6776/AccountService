@@ -1,16 +1,18 @@
 package account.domain;
 
 import account.service.EventType;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.context.ApplicationEvent;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.EventObject;
 
 @Entity
+@NoArgsConstructor
 @Getter
 @Setter
 @Table(name = "security_events")
@@ -25,14 +27,21 @@ public class SecurityEvent {
     private String subject;
     private String object;
     private String path;
-    @Transient
-    private Object source;
-
+    @JsonIgnore
+    private String additionalData;
 
     public SecurityEvent(EventType event, String subject, String object, String path) {
         this.action = event;
         this.subject = subject;
         this.object = object;
         this.path = path;
+    }
+
+    @JsonGetter("object")
+    public String getObjectFormatted() {
+        if (action == EventType.GRANT_ROLE) {
+            return "Grant role %s to %s".formatted(additionalData.substring("ROLE_".length()), object);
+        }
+        return object;
     }
 }

@@ -10,7 +10,6 @@ import account.exceptions.UserExistException;
 import account.repository.UserRepository;
 import account.security.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -115,7 +114,7 @@ public class UserService implements UserDetailsService {
             event = new SecurityEvent(EventType.REMOVE_ROLE, adminEmail, user.getEmail(), path);
         }
         User updatedUser = repository.save(user);
-
+        event.setAdditionalData(role);
         publisher.publishEvent(new ApplicationSecurityEvent(user, event));
         return updatedUser;
     }
@@ -164,12 +163,13 @@ public class UserService implements UserDetailsService {
         repository.save(user);
     }
 
-    public void incrementLoginAttempts(User user, String path) {
+    public User incrementLoginAttempts(String email, String path) {
+        User user = findByEmail(email);
         int number = user.incrementLoginAttempts();
         if (number >= MAX_LOGIN_ATTEMPTS) {
             SecurityEvent event = new SecurityEvent(EventType.BRUTE_FORCE, user.getEmail(), path, path);
             publisher.publishEvent(new ApplicationSecurityEvent(user, event));
         }
-        repository.save(user);
+        return repository.save(user);
     }
 }

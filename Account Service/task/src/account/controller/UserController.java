@@ -22,7 +22,6 @@ import java.util.Map;
 
 @RestController
 public class UserController {
-    Logger logger = LoggerFactory.getLogger(UserController.class);
 
     private UserService userService;
 
@@ -56,7 +55,7 @@ public class UserController {
     @NoArgsConstructor
     @Getter
     @Setter
-    class LockOperation {
+    static class LockOperation {
         @NotNull
         private String user;
         @Pattern(regexp = "LOCK|UNLOCK")
@@ -66,7 +65,7 @@ public class UserController {
     @NoArgsConstructor
     @Getter
     @Setter
-    class RoleUpdate {
+    static class RoleUpdate {
         @NotNull
         private String user;
         @NotNull
