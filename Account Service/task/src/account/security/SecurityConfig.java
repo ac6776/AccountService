@@ -72,7 +72,11 @@ public class SecurityConfig {
         return new AccessDeniedExceptionHandler();
     }
 
-
+    @Bean
+    public AuthorizationEventPublisher authorizationEventPublisher
+            (ApplicationEventPublisher applicationEventPublisher) {
+        return new SpringAuthorizationEventPublisher(applicationEventPublisher);
+    }
 
     @Bean
     public AuthenticationEventPublisher authenticationEventPublisher

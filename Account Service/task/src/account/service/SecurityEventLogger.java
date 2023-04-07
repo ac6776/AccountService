@@ -55,11 +55,6 @@ public class SecurityEventLogger {
     }
 
     @EventListener
-    public void onAccessDenied(AuthorizationDeniedEvent failure) {
-        System.out.println("Event denied");
-    }
-
-    @EventListener
     public void onSecurityEvent(ApplicationSecurityEvent event) {
         securityEventRepository.save(event.getSecurityEvent());
     }
