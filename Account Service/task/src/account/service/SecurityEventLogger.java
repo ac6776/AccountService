@@ -50,8 +50,8 @@ public class SecurityEventLogger {
 //        User user = ((UserDetailsImpl)failureEvent.getAuthentication().getPrincipal()).getUser();
         String path = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest().getServletPath();
         String email = failureEvent.getAuthentication().getPrincipal().toString();
-        userService.incrementLoginAttempts(email, path);
         securityEventRepository.save(new SecurityEvent(EventType.LOGIN_FAILED, email, path, path));
+        userService.incrementLoginAttempts(email, path);
     }
 
     @EventListener

@@ -180,13 +180,15 @@ public class UserService implements UserDetailsService {
     public User incrementLoginAttempts(String email, String path) {
         User user = findByEmail(email);
         if (user == null) {
-            return user;
+            return null;
         }
-        int number = user.incrementLoginAttempts();
-        if (number >= MAX_LOGIN_ATTEMPTS) {
-            SecurityEvent event = new SecurityEvent(EventType.BRUTE_FORCE, user.getEmail(), path, path);
-            publisher.publishEvent(new ApplicationSecurityEvent(user, event));
+        User userUpdated = repository.save(user.incrementLoginAttempts());
+        if (userUpdated.getLoginAttempts() >= MAX_LOGIN_ATTEMPTS) {
+            publisher.publishEvent(new ApplicationSecurityEvent(userUpdated,
+                    new SecurityEvent(EventType.BRUTE_FORCE, user.getEmail(), path, path)));
+            publisher.publishEvent(new ApplicationSecurityEvent(userUpdated,
+                    new SecurityEvent(EventType.LOCK_USER, user.getEmail(), path, path)));
         }
-        return repository.save(user);
+        return userUpdated;
     }
 }

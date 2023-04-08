@@ -77,8 +77,9 @@ public class User {
         roles.remove(role);
     }
 
-    public int incrementLoginAttempts() {
-        return this.loginAttempts++;
+    public User incrementLoginAttempts() {
+        ++loginAttempts;
+        return this;
     }
 
 }
