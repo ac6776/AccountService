@@ -81,5 +81,4 @@ public class User {
         ++loginAttempts;
         return this;
     }
-
 }

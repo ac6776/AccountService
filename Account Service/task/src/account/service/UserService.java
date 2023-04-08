@@ -161,10 +161,10 @@ public class UserService implements UserDetailsService {
         SecurityEvent event;
         if (operation.equals("LOCK")) {
             user.setLocked(true);
-            event = new SecurityEvent(EventType.LOCK_USER, adminEmail, user.getEmail(), path);
+            event = new SecurityEvent(EventType.LOCK_USER, adminEmail, "Lock user " + user.getEmail(), path);
         } else {
             user.setLocked(false);
-            event = new SecurityEvent(EventType.UNLOCK_USER, adminEmail, user.getEmail(), path);
+            event = new SecurityEvent(EventType.UNLOCK_USER, adminEmail, "Unlock user " + user.getEmail(), path);
         }
         User updatedUser = repository.save(user);
 
@@ -189,7 +189,7 @@ public class UserService implements UserDetailsService {
             publisher.publishEvent(new ApplicationSecurityEvent(user,
                     new SecurityEvent(EventType.BRUTE_FORCE, user.getEmail(), path, path)));
             publisher.publishEvent(new ApplicationSecurityEvent(user,
-                    new SecurityEvent(EventType.LOCK_USER, user.getEmail(), path, path)));
+                    new SecurityEvent(EventType.LOCK_USER, user.getEmail(), "Lock user " + user.getEmail(), path)));
         }
         return repository.save(user);
     }

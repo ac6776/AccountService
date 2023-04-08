@@ -49,7 +49,7 @@ public class UserController {
     @PutMapping("${endpoint.put.access}")
     public Map<String, String> putLockStatus(@AuthenticationPrincipal UserDetails admin, @RequestBody @Valid LockOperation object, WebRequest request) {
         userService.updateLockUser(admin.getUsername(), object.getUser(), object.getOperation(), request.getDescription(false));
-        return Map.of("status", "User %s %sed!".formatted(object.getUser(), object.getOperation()));
+        return Map.of("status", "User " + "%s %sed!".formatted(object.getUser(), object.getOperation()).toLowerCase());
     }
 
     @NoArgsConstructor
