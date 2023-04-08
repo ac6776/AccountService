@@ -3,16 +3,14 @@ package account.service;
 import account.domain.Role;
 import account.domain.SecurityEvent;
 import account.domain.User;
-import account.exceptions.AdminDeletionException;
-import account.exceptions.PasswordAlreadyInUseException;
-import account.exceptions.RolesAssignmentException;
-import account.exceptions.UserExistException;
+import account.exceptions.*;
 import account.repository.UserRepository;
 import account.security.UserDetailsImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -160,6 +158,7 @@ public class UserService implements UserDetailsService {
         }
         SecurityEvent event;
         if (operation.equals("LOCK")) {
+            if (user.isAdmin()) throw new AdminLockException();
             user.setLocked(true);
             event = new SecurityEvent(EventType.LOCK_USER, adminEmail, "Lock user " + user.getEmail(), path);
         } else {
