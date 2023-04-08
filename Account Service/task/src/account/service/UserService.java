@@ -9,15 +9,15 @@ import account.exceptions.RolesAssignmentException;
 import account.exceptions.UserExistException;
 import account.repository.UserRepository;
 import account.security.UserDetailsImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -29,6 +29,8 @@ public class UserService implements UserDetailsService {
     private UserRepository repository;
     private PasswordEncoder passwordEncoder;
     private RoleService roleService;
+
+    private Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     private ApplicationEventPublisher publisher;
@@ -59,6 +61,10 @@ public class UserService implements UserDetailsService {
         User createdUser = repository.save(user);
         SecurityEvent event = new SecurityEvent(EventType.CREATE_USER,"Anonymous", createdUser.getEmail(), path);
         publisher.publishEvent(new ApplicationSecurityEvent(createdUser, event));
+
+        logger.info(event.toString());
+        logger.info(createdUser.toString());
+
         return createdUser;
     }
 
@@ -117,6 +123,10 @@ public class UserService implements UserDetailsService {
         User updatedUser = repository.save(user);
         event.setAdditionalData(role);
         publisher.publishEvent(new ApplicationSecurityEvent(user, event));
+
+        logger.info(event.toString());
+        logger.info(updatedUser.toString());
+
         return updatedUser;
     }
 

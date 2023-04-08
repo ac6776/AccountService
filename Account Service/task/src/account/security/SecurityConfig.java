@@ -25,7 +25,6 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 public class SecurityConfig {
     private UserDetailsService userService;
     private AuthenticationEntryPoint restAuthenticationEntryPoint;
-    @Autowired
     private EndpointsReader endpointsReader;
 
     @Autowired
@@ -38,6 +37,11 @@ public class SecurityConfig {
         this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
     }
 
+    @Autowired
+    public void setEndpointsReader(EndpointsReader endpointsReader) {
+        this.endpointsReader = endpointsReader;
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationEventPublisher authenticationEventPublisher) throws Exception {
         http
@@ -47,11 +51,10 @@ public class SecurityConfig {
                     auth.antMatchers(HttpMethod.POST, getEndpoint("post.shutdown")).permitAll();
                     auth.antMatchers(HttpMethod.POST, getEndpoint("post.changepass")).authenticated();
                     auth.antMatchers(HttpMethod.GET, getEndpoint("get.security_events")).hasRole("AUDITOR");
-//                    auth.antMatchers(HttpMethod.GET, getEndpoint("get.security_events")).permitAll();
                     auth.antMatchers(HttpMethod.GET, getEndpoint("get.payment")).hasAnyRole("USER", "ACCOUNTANT");
                     auth.antMatchers(HttpMethod.POST, getEndpoint("post.payments")).hasRole("ACCOUNTANT");
                     auth.antMatchers(HttpMethod.PUT, getEndpoint("put.payments")).hasRole("ACCOUNTANT");
-                    auth.antMatchers(getEndpoint("get.user") + "/**").hasRole("ADMINISTRATOR");
+                    auth.antMatchers(HttpMethod.GET, getEndpoint("get.user")).hasRole("ADMINISTRATOR");
                     auth.antMatchers(HttpMethod.PUT, getEndpoint("put.role")).hasRole("ADMINISTRATOR");
                     auth.antMatchers(HttpMethod.PUT, getEndpoint("put.access")).hasRole("ADMINISTRATOR");
                     auth.antMatchers(HttpMethod.DELETE, getEndpoint("delete.user") + "/**").hasRole("ADMINISTRATOR");
