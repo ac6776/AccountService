@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -158,9 +157,12 @@ public class UserService implements UserDetailsService {
         }
         SecurityEvent event;
         if (operation.equals("LOCK")) {
-            if (user.isAdmin()) throw new AdminLockException();
+            if (user.isAdmin()) {
+                throw new AdminLockException();
+            }
             user.setLocked(true);
             event = new SecurityEvent(EventType.LOCK_USER, adminEmail, "Lock user " + user.getEmail(), path);
+            logger.warn("KEEP EXISTING METHOD AFTER LOCK " + user.toString());
         } else {
             user.setLocked(false);
             user.setLoginAttempts(0);
@@ -185,6 +187,10 @@ public class UserService implements UserDetailsService {
 //        User userUpdated = repository.save(user.incrementLoginAttempts());
         user.incrementLoginAttempts();
         if (user.getLoginAttempts() >= MAX_LOGIN_ATTEMPTS) {
+            if (user.isAdmin()) {
+                user.setLoginAttempts(0);
+                return repository.save(user);
+            }
             user.setLocked(true);
             publisher.publishEvent(new ApplicationSecurityEvent(user,
                     new SecurityEvent(EventType.BRUTE_FORCE, user.getEmail(), path, path)));

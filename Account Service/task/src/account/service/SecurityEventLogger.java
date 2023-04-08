@@ -3,6 +3,8 @@ package account.service;
 import account.domain.SecurityEvent;
 import account.repository.SecurityEventRepository;
 import account.security.UserDetailsImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
@@ -20,6 +22,8 @@ public class SecurityEventLogger {
 
     private SecurityEventRepository securityEventRepository;
     private UserService userService;
+
+    Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     public void setSecurityEventRepository(SecurityEventRepository securityEventRepository) {
@@ -57,6 +61,7 @@ public class SecurityEventLogger {
 
     @EventListener
     public void onSecurityEvent(ApplicationSecurityEvent event) {
+        logger.warn("SEC EVENT " + event.toString());
         securityEventRepository.save(event.getSecurityEvent());
     }
 

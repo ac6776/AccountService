@@ -2,6 +2,7 @@ package account.controller;
 
 import account.domain.User;
 import account.messages.UserDeleteSuccessMessage;
+import account.security.UserDetailsImpl;
 import account.service.UserService;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,13 +26,16 @@ public class UserController {
 
     private UserService userService;
 
+    Logger logger = LoggerFactory.getLogger(this.getClass());
+
     @Autowired
     public void setUserService(UserService userService) {
         this.userService = userService;
     }
 
     @GetMapping("${endpoint.get.user}")
-    public List<User> getUsers() {
+    public List<User> getUsers(@AuthenticationPrincipal UserDetailsImpl user) {
+        logger.warn(user.getUsername() + " " + user.isAccountNonLocked());
         return userService.findAll();
     }
 
