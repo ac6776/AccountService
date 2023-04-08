@@ -164,6 +164,7 @@ public class UserService implements UserDetailsService {
             event = new SecurityEvent(EventType.LOCK_USER, adminEmail, "Lock user " + user.getEmail(), path);
         } else {
             user.setLocked(false);
+            user.setLoginAttempts(0);
             event = new SecurityEvent(EventType.UNLOCK_USER, adminEmail, "Unlock user " + user.getEmail(), path);
         }
         User updatedUser = repository.save(user);
