@@ -182,13 +182,15 @@ public class UserService implements UserDetailsService {
         if (user == null) {
             return null;
         }
-        User userUpdated = repository.save(user.incrementLoginAttempts());
-        if (userUpdated.getLoginAttempts() >= MAX_LOGIN_ATTEMPTS) {
-            publisher.publishEvent(new ApplicationSecurityEvent(userUpdated,
+//        User userUpdated = repository.save(user.incrementLoginAttempts());
+        user.incrementLoginAttempts();
+        if (user.getLoginAttempts() >= MAX_LOGIN_ATTEMPTS) {
+            user.setLocked(true);
+            publisher.publishEvent(new ApplicationSecurityEvent(user,
                     new SecurityEvent(EventType.BRUTE_FORCE, user.getEmail(), path, path)));
-            publisher.publishEvent(new ApplicationSecurityEvent(userUpdated,
+            publisher.publishEvent(new ApplicationSecurityEvent(user,
                     new SecurityEvent(EventType.LOCK_USER, user.getEmail(), path, path)));
         }
-        return userUpdated;
+        return repository.save(user);
     }
 }

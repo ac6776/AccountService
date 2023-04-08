@@ -2,8 +2,11 @@ package account.controller;
 
 import account.domain.Payment;
 import account.domain.PaymentDTO;
+import account.security.UserDetailsImpl;
 import account.service.PaymentService;
 import account.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,6 +27,8 @@ public class PaymentController {
     private PaymentService paymentService;
     private UserService userService;
 
+    Logger logger = LoggerFactory.getLogger(this.getClass());
+
     @Autowired
     public void setUserService(UserService userService) {
         this.userService = userService;
@@ -37,6 +42,9 @@ public class PaymentController {
     //GET api/empl/payment - gives access to the payroll of an employee
     @GetMapping("/empl/payment")
     public ResponseEntity<?> getPayment(@AuthenticationPrincipal UserDetails userDetails, @RequestParam(required = false) String period) {
+        logger.info(userDetails.toString());
+        logger.info(String.valueOf(((UserDetailsImpl)userDetails).getUser().isLocked()));
+
         var userFromDB = userService.findByEmail(userDetails.getUsername());
         if (period != null) {
             var paymentFromBD = paymentService.findOneByPeriodAndEmployee(period, userFromDB.getEmail());
