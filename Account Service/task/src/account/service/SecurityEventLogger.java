@@ -6,6 +6,7 @@ import account.security.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
+import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.authorization.event.AuthorizationDeniedEvent;
 import org.springframework.stereotype.Service;
@@ -46,7 +47,7 @@ public class SecurityEventLogger {
     }
 
     @EventListener
-    public void onAuthenticationFailure(AbstractAuthenticationFailureEvent failureEvent) {
+    public void onAuthenticationFailure(AuthenticationFailureBadCredentialsEvent failureEvent) {
 //        User user = ((UserDetailsImpl)failureEvent.getAuthentication().getPrincipal()).getUser();
         String path = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest().getServletPath();
         String email = failureEvent.getAuthentication().getPrincipal().toString();
